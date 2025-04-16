@@ -1,32 +1,42 @@
-export const initialStore=()=>{
-  return{
-    message: null,
-    todos: [
-      {
-        id: 1,
-        title: "Make the bed",
-        background: null,
+const getState = ({ getStore, getActions, setStore }) => {
+  return {
+      store: {
+          favorites: [],
+          people: [],
+          planets: [],
+          vehicles: [],
+          currentItem: null,
       },
-      {
-        id: 2,
-        title: "Do my homework",
-        background: null,
+      actions: {
+          loadData: async () => {
+              const urls = [
+                  { type: "people", url: "https://www.swapi.tech/api/people" },
+                  { type: "planets", url: "https://www.swapi.tech/api/planets" },
+                  { type: "vehicles", url: "https://www.swapi.tech/api/vehicles" }
+              ];
+              for (let { type, url } of urls) {
+                  const res = await fetch(url);
+                  const data = await res.json();
+                  setStore({ [type]: data.results });
+              }
+          },
+          getDetails: async (url) => {
+              const res = await fetch(url);
+              const data = await res.json();
+              setStore({ currentItem: data.result });
+          },
+          addFavorite: (item) => {
+              const store = getStore();
+              if (!store.favorites.includes(item)) {
+                  setStore({ favorites: [...store.favorites, item] });
+              }
+          },
+          removeFavorite: (item) => {
+              const store = getStore();
+              setStore({ favorites: store.favorites.filter(fav => fav !== item) });
+          }
       }
-    ]
-  }
-}
+  };
+};
 
-export default function storeReducer(store, action = {}) {
-  switch(action.type){
-    case 'add_task':
-
-      const { id,  color } = action.payload
-
-      return {
-        ...store,
-        todos: store.todos.map((todo) => (todo.id === id ? { ...todo, background: color } : todo))
-      };
-    default:
-      throw Error('Unknown action.');
-  }    
-}
+export default getState;
